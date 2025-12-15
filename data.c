@@ -1,4 +1,5 @@
 // data.c
+
 #include <stdio.h>
 #include "data.h"
 
@@ -11,10 +12,13 @@ int examQuestionNum = 5;
 
 void loadFiles() {
     FILE *fp;
+    
+    // 1. 读取试题库
     fp = fopen(FILE_QUESTIONS, "r");
     if (fp) {
         qCount = 0;
-         while (qCount < MAX_QUESTIONS && 
+        // 核心修改：增加边界检查和返回值检查
+        while (qCount < MAX_QUESTIONS && 
                fscanf(fp, "%[^|]|%[^|]|%[^|]|%[^|]|%[^|]|%s\n", 
                questionBank[qCount].content,
                questionBank[qCount].optionA,
@@ -27,31 +31,27 @@ void loadFiles() {
             questionBank[qCount].scoreVal = 10;
             qCount++;
         }
-    
-    if (!feof(fp) && qCount == MAX_QUESTIONS) {
-            printf("警告：题库已满，部分题目未读取。\n");
-        }
-        
         fclose(fp);
-    }
-    else {
-        // 如果文件不存在，创建它以免下次报错
+    } else {
+        // 如果文件不存在，创建空文件防止报错
         fp = fopen(FILE_QUESTIONS, "w");
         if(fp) fclose(fp);
     }
+
+    // 2. 读取学生信息
     fp = fopen(FILE_STUDENTS, "r");
     if (fp) {
         sCount = 0;
-        while (fscanf(fp, "%s %s %d %d", 
+        while (sCount < MAX_STUDENTS && 
+               fscanf(fp, "%s %s %d %d", 
                studentList[sCount].id, 
                studentList[sCount].name, 
                &studentList[sCount].hasTaken, 
-               &studentList[sCount].score) != EOF) {
+               &studentList[sCount].score) == 4) {
             sCount++;
         }
         fclose(fp);
-    }
-    else {
+    } else {
         fp = fopen(FILE_STUDENTS, "w");
         if(fp) fclose(fp);
     }
