@@ -94,3 +94,23 @@ void saveStudents() {
     }
     fclose(fp);
 }
+
+
+void reloadStudents() {
+    FILE *fp = fopen(FILE_STUDENTS, "r");
+    if (fp) {
+        // 清空旧数据
+        sCount = 0;
+        
+        // 重新读取
+        while (sCount < MAX_STUDENTS && 
+               fscanf(fp, "%s %s %d %d", 
+               studentList[sCount].id, 
+               studentList[sCount].name, 
+               &studentList[sCount].hasTaken, 
+               &studentList[sCount].score) == 4) {
+            sCount++;
+        }
+        fclose(fp);
+    }
+}

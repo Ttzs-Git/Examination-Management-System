@@ -15,5 +15,5 @@ extern int examQuestionNum;
 void loadFiles();
 void saveStudents();
 void saveQuestions();
-
+void reloadStudents();
 #endif
