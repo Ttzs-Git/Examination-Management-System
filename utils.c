@@ -5,6 +5,8 @@
 #include "utils.h"
 #include <termios.h>
 #include <unistd.h> 
+#include <sys/ioctl.h>
+
 
 void clearScreen() {
     system("clear"); 
@@ -64,4 +66,23 @@ void getPassword(char *password, int maxLength) {
     // 4. 恢复终端原有配置
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     printf("\n"); // 换行
+}
+
+int kbhit(void) {
+    static const int STDIN = 0;
+    static int initialized = 0;
+    int bytesWaiting;
+
+    if (!initialized) {
+        // 使用 termios 来配置终端，使其变为非规范模式
+        struct termios term;
+        tcgetattr(STDIN, &term);
+        term.c_lflag &= ~ICANON;
+        tcsetattr(STDIN, TCSANOW, &term);
+        setbuf(stdin, NULL);
+        initialized = 1;
+    }
+
+    ioctl(STDIN, FIONREAD, &bytesWaiting);
+    return bytesWaiting;
 }

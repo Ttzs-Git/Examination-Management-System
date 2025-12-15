@@ -1,0 +1,7 @@
+[
+  {"question": "字符 'a' 对应的ASCII码值大约是？", "user_answer": "A", "correct_answer": "C"},
+  {"question": "1e5表示？", "user_answer": "A", "correct_answer": "B"},
+  {"question": "~运算符表示？", "user_answer": "A", "correct_answer": "B"},
+  {"question": "表达式 8 >> 2 的值是？", "user_answer": "A", "correct_answer": "B"},
+  {"question": "floor()函数的作用是？", "user_answer": "A", "correct_answer": "A"}
+]

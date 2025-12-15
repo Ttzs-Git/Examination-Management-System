@@ -1,2 +1,4 @@
 ./students.txt
 ./questions.txt
+./.env
+./*.json

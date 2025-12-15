@@ -1,0 +1,7 @@
+[
+  {"question": "逻辑“与”运算符是？", "user_answer": "A", "correct_answer": "B"},
+  {"question": "三元运算符是？", "user_answer": "B", "correct_answer": "A"},
+  {"question": "用于定义别名的关键字是？", "user_answer": "C", "correct_answer": "B"},
+  {"question": "C语言中，1/22的结果是？", "user_answer": "d", "correct_answer": "C"},
+  {"question": "如果a=1,b=2,则a*b=", "user_answer": "E", "correct_answer": "AB"}
+]
