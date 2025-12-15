@@ -6,7 +6,7 @@
 #define MAX_STUDENTS 500
 #define FILE_QUESTIONS "questions.txt"
 #define FILE_STUDENTS "students.txt"
-
+#define ADMIN_PASSWORD "123456" // admin_password
 // 试题结构体
 typedef struct {
     int id;

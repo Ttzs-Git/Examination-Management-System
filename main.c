@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "admin.h"
 #include "student.h"
+#include <string.h>
 
 // 美化后的公共查询菜单
 void publicQueryMenu() {
@@ -60,9 +61,27 @@ int main() {
             while(getchar() != '\n');
             continue;
         }
-
+        while(getchar() != '\n'); 
         switch (choice) {
-            case 1: adminMenu(); break;
+            case 1: 
+            {
+                    char inputPwd[30];
+                    printf(COLOR_YELLOW "请输入管理员密码: " COLOR_RESET);
+                    
+                    // 调用刚才写的隐藏输入函数
+                    getPassword(inputPwd, 30);
+
+                    // 校验密码
+                    if (strcmp(inputPwd, ADMIN_PASSWORD) == 0) {
+                        printf(COLOR_GREEN "√ 验证成功！正在进入...\n" COLOR_RESET);
+                        // 稍微停顿一下，增加交互感 (使用 sleep 需要 <unistd.h>，这里简单用空循环或不暂停均可)
+                        adminMenu(); 
+                    } else {
+                        printf(COLOR_RED "X 密码错误！拒绝访问。\n" COLOR_RESET);
+                        pauseSystem();
+                    }
+                }
+            break;
             case 2: studentMenu(); break;
             case 3: publicQueryMenu(); break;
             case 0: 

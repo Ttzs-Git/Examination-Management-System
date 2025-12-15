@@ -17,5 +17,5 @@
 void clearScreen();
 void pauseSystem();
 void trimNewline(char *str);
-
+void getPassword(char *password, int maxLength);
 #endif
