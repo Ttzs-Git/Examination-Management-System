@@ -1,22 +1,16 @@
-# Makefile
 CC = gcc
 CFLAGS = -Wall -g
+OBJS = main.o data.o utils.o admin.o student.o network.o
 
-# 目标文件
 TARGET = exam_system
 
-# 对象文件列表
-OBJS = main.o data.o utils.o admin.o student.o
-
-# 默认生成目标
 all: $(TARGET)
 
-# 链接
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
 
-# 单独编译每个模块
-main.o: main.c data.h utils.h admin.h student.h
+# 编译规则
+main.o: main.c data.h utils.h admin.h student.h network.h
 	$(CC) $(CFLAGS) -c main.c
 
 data.o: data.c data.h types.h
@@ -31,6 +25,8 @@ admin.o: admin.c admin.h data.h utils.h
 student.o: student.c student.h data.h utils.h
 	$(CC) $(CFLAGS) -c student.c
 
-# 清理
+network.o: network.c network.h data.h utils.h
+	$(CC) $(CFLAGS) -c network.c
+
 clean:
 	rm -f $(OBJS) $(TARGET)

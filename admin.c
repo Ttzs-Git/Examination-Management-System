@@ -5,6 +5,7 @@
 #include "admin.h"
 #include "data.h"
 #include "utils.h"
+#include "network.h"
 
 // 内部函数声明
 static void addQuestion();
@@ -26,17 +27,18 @@ void adminMenu() {
         printf(COLOR_YELLOW "4." COLOR_RESET " 搜索考生成绩/排名\n");
         printf(COLOR_YELLOW "5." COLOR_RESET " 修改/重置考生信息\n");
         printf(COLOR_RED    "6." COLOR_RESET " 删除考生\n");
-        printf(COLOR_CYAN   "7." COLOR_RESET " 设置单次考试题数 (当前: " COLOR_BOLD "%d" COLOR_RESET " / 总题库: %d)\n", examQuestionNum, qCount);
+        printf(COLOR_CYAN   "7." COLOR_RESET " 设置单次考试题数\n");
+        printf(COLOR_GREEN  "8." COLOR_RESET " 发布网络考试 (Server)\n"); 
+        
         printf(COLOR_DIM "------------------------\n" COLOR_RESET);
         printf("0. 返回主菜单\n");
-        printf(COLOR_DIM "------------------------\n" COLOR_RESET);
         printf("请选择: ");
         
-        // 修复之前的 Warning：将 continue 写在花括号里
         if (scanf("%d", &choice) != 1) {
             while(getchar() != '\n'); 
             continue;
         }
+        while(getchar() != '\n'); // 吃回车
 
         switch (choice) {
             case 1: addQuestion(); break;
@@ -52,6 +54,10 @@ void adminMenu() {
                 printf(COLOR_GREEN "设置已更新！\n" COLOR_RESET);
                 pauseSystem();
                 break;
+            case 8: 
+                printf("正在启动网络服务...\n");     
+                startNetworkServer(); 
+                break; 
             case 0: return;
             default: break;
         }

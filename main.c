@@ -1,13 +1,14 @@
 // main.c
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "data.h"
 #include "utils.h"
 #include "admin.h"
 #include "student.h"
-#include <string.h>
+#include "network.h"
 
-// 美化后的公共查询菜单
+
 void publicQueryMenu() {
     int choice;
     while(1) {
@@ -36,6 +37,7 @@ void publicQueryMenu() {
     }
 }
 
+
 int main() {
     loadFiles(); // 启动时读取数据
 
@@ -50,7 +52,6 @@ int main() {
         printf("  " COLOR_YELLOW "1." COLOR_RESET " 管理员入口 " COLOR_DIM "(教师/教务)\n" COLOR_RESET);
         printf("  " COLOR_YELLOW "2." COLOR_RESET " 考生入口   " COLOR_DIM "(参加考试)\n" COLOR_RESET);
         printf("  " COLOR_YELLOW "3." COLOR_RESET " 成绩查询   " COLOR_DIM "(所有人可用)\n" COLOR_RESET);
-        
         printf(COLOR_DIM "--------------------------------------\n" COLOR_RESET);
         printf("  " COLOR_RED "0. 退出系统\n" COLOR_RESET);
         printf(COLOR_DIM "--------------------------------------\n" COLOR_RESET);
