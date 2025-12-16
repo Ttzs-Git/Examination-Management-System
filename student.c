@@ -1,5 +1,4 @@
 // student.c
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,6 +10,7 @@
 #include "network.h"
 
 void studentMenu() {
+    // 显示彩色菜单
     char inputID[20];
     clearScreen();
     printf(COLOR_GREEN "欢迎来到考生入口\n" COLOR_RESET);
@@ -21,6 +21,7 @@ void studentMenu() {
     printf("0. 返回\n");
     printf("请选择: ");
 
+    // 读取用户输入
     int mode;
     if (scanf("%d", &mode) != 1) {
         while(getchar() != '\n'); 
@@ -28,12 +29,8 @@ void studentMenu() {
     }
     while(getchar() != '\n');
 
-    // ==========================================
-    //  【核心修复逻辑】
-    // ==========================================
-    
     if(mode==1){
-    
+    // 本地模拟考试
     printf(COLOR_CYAN "\n>>> 正在启动模拟练习模式 (结果不保存) <<<\n" COLOR_RESET);
     pauseSystem();
 
@@ -45,10 +42,12 @@ void studentMenu() {
     int *indices = (int*)malloc(qCount * sizeof(int));
     for(int i=0; i<qCount; i++) indices[i] = i;
     srand(time(NULL));
+    // fisher-yates算法
     for (int i = qCount - 1; i > 0; i--) {
         int j = rand() % (i + 1);
         int temp = indices[i]; indices[i] = indices[j]; indices[j] = temp;
     }
+    
 
     int currentScore = 0;
     for (int i = 0; i < examQuestionNum; i++) {
@@ -62,7 +61,6 @@ void studentMenu() {
         printf(COLOR_YELLOW "\n请输入答案: " COLOR_RESET);
         
         char userAns[10];
-        // 模拟考试也可以用 fgets 优化，不过 scanf 这里也能凑合用
         scanf("%s", userAns);
         for(int k=0; userAns[k]; k++) userAns[k] = toupper(userAns[k]);
 
@@ -80,6 +78,7 @@ void studentMenu() {
     pauseSystem();
 }   
     else if (mode == 2) {
+        // 参加网络考试
         printf(COLOR_CYAN "\n请输入你的学号以连接到考试服务器: " COLOR_RESET);
         fgets(inputID, sizeof(inputID), stdin);
         trimNewline(inputID);
@@ -90,6 +89,7 @@ void studentMenu() {
         return;
     } 
     else{
+        // 直接返回
         return;
     }
     

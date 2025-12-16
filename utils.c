@@ -2,41 +2,48 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "utils.h"
 #include <termios.h>
 #include <unistd.h> 
 #include <sys/ioctl.h>
-
+#include "utils.h"
 
 void clearScreen() {
-    system("clear"); 
+    system("clear"); // 清空系统终端屏幕 
 }
 
 void pauseSystem() {
+    // 处理换行残留
     printf("\n按回车键继续...");
-    getchar();
-    getchar(); 
+    getchar();// 等待用户按回车键继续
+    getchar(); // 处理换行符带来的影响
 }
 
 void trimNewline(char *str) {
+    // 移除字符串末尾的换行符
     size_t len = strlen(str);
-    if (len > 0 && str[len-1] == '\n') {
+    if (len > 0 && str[len-1] == '\n') {// 总是带'\n'需要手动截断
         str[len-1] = '\0';
     }
 }
 
+// fgets() 读取一行，包括换行符，但不包含 '\0'
+// scanf() 读取一行，不包括换行符，但包含 '\0'
+
 void getPassword(char *password, int maxLength) {
+    // 使用termios库
     struct termios oldt, newt;
     int i = 0;
     int c;
 
     // 1. 获取当前终端配置
-    tcgetattr(STDIN_FILENO, &oldt);
+    tcgetattr(STDIN_FILENO, &oldt);// 保存原来的配置
     newt = oldt;
 
     // 2. 关闭 回显(ECHO) 和 规范模式(ICANON)
-    // ICANON关闭后，输入字符不需要按回车就能被程序捕获，方便我们手动打印 '*'
-    newt.c_lflag &= ~(ECHO | ICANON);
+    // ECHO关:不显示输入
+    // ICANON关:逐字符读，不等待回车
+    newt.c_lflag &= ~(ECHO | ICANON);// 关回显+关闭规范模式
+
     
     // 3. 应用新配置
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
@@ -68,7 +75,8 @@ void getPassword(char *password, int maxLength) {
     printf("\n"); // 换行
 }
 
-int kbhit(void) {
+int kbhit() {
+    // 检查是否有键入等待读取, 非阻塞检测按键
     static const int STDIN = 0;
     static int initialized = 0;
     int bytesWaiting;

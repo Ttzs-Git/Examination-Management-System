@@ -1,7 +1,7 @@
 [
-  {"question": "逻辑“与”运算符是？", "user_answer": "A", "correct_answer": "B"},
-  {"question": "三元运算符是？", "user_answer": "B", "correct_answer": "A"},
-  {"question": "用于定义别名的关键字是？", "user_answer": "C", "correct_answer": "B"},
-  {"question": "C语言中，1/22的结果是？", "user_answer": "d", "correct_answer": "C"},
-  {"question": "如果a=1,b=2,则a*b=", "user_answer": "E", "correct_answer": "AB"}
+  {"question": "Linux下常用的C编译器是？", "user_answer": "A", "correct_answer": "A"},
+  {"question": "指针变量存储的是什么？", "user_answer": "A", "correct_answer": "B"},
+  {"question": "math.h中计算幂的函数是？", "user_answer": "A", "correct_answer": "C"},
+  {"question": "register关键字建议编译器将变量存放在？", "user_answer": "A", "correct_answer": "B"},
+  {"question": "strcat函数用于？", "user_answer": "A", "correct_answer": "B"}
 ]

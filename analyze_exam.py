@@ -1,5 +1,4 @@
 # analyze_exam.py
-
 import sys
 import json
 import os
@@ -7,12 +6,11 @@ from openai import OpenAI
 from dotenv import load_dotenv
 # --- 1. 配置你的火山方舟凭证 ---
 
-# a) 从环境变量中读取 API Key (推荐)
+# a) 从环境变量中读取 API Key
 load_dotenv() 
 api_key = os.environ.get("ARK_API_KEY")
 
-# b) 配置你的推理接入点 ID (必须修改)
-#    从火山方舟“推理接入点”页面复制你的 Endpoint ID
+# b) 配置推理接入点 ID 
 ENDPOINT_ID = "doubao-seed-1-6-flash-250828" 
 
 # 检查配置
@@ -36,7 +34,7 @@ def analyze_performance(exam_data):
     
     # Prompt 保持不变，它设计得很好
     prompt_content = f"""
-    你是一名资深的C语言编程辅-导老师。一位学生刚刚完成了一场C语言在线测试，
+    你是一名资深的C语言编程辅导老师。一位学生刚刚完成了一场C语言在线测试，
     以下是他的答题记录 (JSON格式):
     
     ```json
