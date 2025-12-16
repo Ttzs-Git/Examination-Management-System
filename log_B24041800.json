@@ -1,0 +1,7 @@
+[
+  {"question": "Visual Studio使用的C编译器是？", "user_answer": "C", "correct_answer": "C"},
+  {"question": "在C语言中，"A" 和 'A' 一样吗？", "user_answer": "B", "correct_answer": "B"},
+  {"question": "do-while循环至少执行几次？", "user_answer": "B", "correct_answer": "B"},
+  {"question": "register关键字建议编译器将变量存放在？", "user_answer": "CD", "correct_answer": "B"},
+  {"question": "字符常量使用什么符号包围？", "user_answer": "B", "correct_answer": "B"}
+]

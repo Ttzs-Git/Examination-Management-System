@@ -1,7 +1,8 @@
 [
-  {"question": "typedef int (FUNC)(int); 定义了？", "user_answer": "B", "correct_answer": "B"},
-  {"question": "C语言支持函数嵌套定义吗？", "user_answer": "C", "correct_answer": "B"},
-  {"question": "extern关键字用于？", "user_answer": "B", "correct_answer": "A"},
-  {"question": "scanf函数返回什么？", "user_answer": "A", "correct_answer": "B"},
-  {"question": "long类型至少占多少字节？", "user_answer": "B", "correct_answer": "B"}
+]
+{"question": "C语言支持函数递归调用吗？", "user_answer": "D", "correct_answer": "A"},
+  {"question": "int a[10]; &a 和 a 的数值相同吗？", "user_answer": "B", "correct_answer": "A"},
+  {"question": "字符 'A' 对应的ASCII码值大约是？", "user_answer": "B", "correct_answer": "B"},
+  {"question": "typedef int (FUNC)(int); 定义了？", "user_answer": "C", "correct_answer": "B"},
+  {"question": "Doxygen用于？", "user_answer": "B", "correct_answer": "A"}
 ]

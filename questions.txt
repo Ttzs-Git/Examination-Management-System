@@ -227,3 +227,5 @@ C语言中，变量名区分大小写吗？|区分|不区分|仅函数名区分|
 NULL指针解引用会发生什么？|返回0|返回NULL|段错误/崩溃|正常运行|C
 在C语言中，"A" 和 'A' 一样吗？|一样|不一样|取决于编译器|都是整数|B
 如果a=1,b=2,则a*b=|2|2|3|4|AB
+printf("hello world")，输出是什么|hello world|“hello world”|helloworld|hello world|AD
+int a=1,a++,后a=|1|2|3|4|B

@@ -1,3 +1,4 @@
+# app.py
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from tkinter import messagebox, scrolledtext, simpledialog
@@ -7,7 +8,7 @@ import time
 
 SERVER_IP = '127.0.0.1'
 SERVER_PORT = 8888
-DELIMITER = "$$$"  # 与 C 语言约定的结束符
+DELIMITER = "$$$"  # 协议结束符
 
 class ExamApp(ttk.Window):
     def __init__(self):
@@ -40,26 +41,34 @@ class ExamApp(ttk.Window):
     def clear_ui(self):
         for widget in self.winfo_children(): widget.destroy()
 
-    # ==================== 网络核心：缓冲接收器 ====================
+    # ==================== 网络核心：缓冲发送与接收 ====================
+    def send_packet(self, text):
+        """统一发送函数，自动追加结束符"""
+        if self.sock:
+            try:
+                # 确保发送的是 UTF-8 编码并加上 $$$
+                self.sock.sendall((text + DELIMITER).encode('utf-8'))
+            except Exception as e:
+                print(f"Send Error: {e}")
+
     def recv_packet(self):
-        """
-        修复版：使用 self.buffer 持久化存储，防止丢包
-        """
+        """缓冲接收器，处理粘包"""
         while True:
             try:
-                # 1. 先检查缓存区是否已经包含完整的包
+                # 优先处理缓冲区已有的完整包
                 if b"$$$" in self.buffer:
-                    # 切割数据：取第一个 $$$ 之前的部分作为本次消息
-                    parts = self.buffer.split(b"$$$", 1) # 只切一刀
+                    parts = self.buffer.split(b"$$$", 1)
                     msg = parts[0]
-                    self.buffer = parts[1] # 【关键】把剩下的数据塞回缓冲区，留给下次用
+                    self.buffer = parts[1]
                     return msg.decode('utf-8', errors='ignore')
                 
-                # 2. 缓存区没有完整包，从网络读取
+                if not self.sock: return None
+                
                 chunk = self.sock.recv(4096)
                 if not chunk: 
-                    # 连接断开
-                    return None
+                    # 【修复步骤 2】: 连接断开时，如果缓冲区还有数据（可能没有$$$了，但也得看看），或者直接返回None
+                    # 对于本协议，没有$$$就是不完整，直接丢弃即可
+                    return None 
                 self.buffer += chunk
                 
             except Exception as e:
@@ -71,24 +80,12 @@ class ExamApp(ttk.Window):
         self.clear_ui()
         frame = ttk.Frame(self, padding=40)
         frame.pack(expand=True)
-
         ttk.Label(frame, text="C语言智能考试系统", font=('Microsoft YaHei', 28, "bold"), bootstyle="primary").pack(pady=20)
-
-        btn_frame = ttk.Frame(frame)
-        btn_frame.pack(pady=40)
-
-        # 按钮 1: 网络考试 (原“我是考生”)
-        b1 = ttk.Button(btn_frame, text="参加网络考试", command=self.show_student_login, bootstyle="success", width=20)
-        b1.pack(side=LEFT, padx=10, ipady=15)
+        btn_frame = ttk.Frame(frame); btn_frame.pack(pady=40)
         
-        # 按钮 2: 【新增】本地练习
-        b2 = ttk.Button(btn_frame, text="本地模拟练习", command=self.start_local_practice, bootstyle="info", width=20)
-        b2.pack(side=LEFT, padx=10, ipady=15)
-        
-        # 按钮 3: 管理员
-        b3 = ttk.Button(btn_frame, text="管理员后台", command=self.admin_login_dialog, bootstyle="danger", width=20)
-        b3.pack(side=LEFT, padx=10, ipady=15)
-        
+        ttk.Button(btn_frame, text="参加网络考试", command=self.show_student_login, bootstyle="success", width=20).pack(side=LEFT, padx=10, ipady=15)
+        ttk.Button(btn_frame, text="本地模拟练习", command=self.start_local_practice, bootstyle="info", width=20).pack(side=LEFT, padx=10, ipady=15)
+        ttk.Button(btn_frame, text="管理员后台", command=self.admin_login_dialog, bootstyle="danger", width=20).pack(side=LEFT, padx=10, ipady=15)
         ttk.Label(frame, text="提示: 网络考试需先启动 C 后端 Server", bootstyle="secondary").pack(pady=20)
 
     # ==================== 管理员 ====================
@@ -103,90 +100,82 @@ class ExamApp(ttk.Window):
 
     def show_admin_panel(self):
         self.clear_ui()
-        top_bar = ttk.Frame(self, padding=10, bootstyle="secondary")
-        top_bar.pack(fill=X)
-        ttk.Button(top_bar, text=" 返回", command=self.disconnect_and_return, bootstyle="light-outline").pack(side=LEFT)
-        ttk.Button(top_bar, text="刷新数据", command=self.admin_refresh_data, bootstyle="info").pack(side=RIGHT)
+        top_bar = ttk.Frame(self, padding=10, bootstyle="secondary"); top_bar.pack(fill=X)
+        ttk.Button(top_bar, text="返回", command=self.disconnect_and_return, bootstyle="light-outline").pack(side=LEFT)
+        ttk.Label(top_bar, text="管理员控制台", font=("Microsoft YaHei", 12, "bold"), foreground="white").pack(side=LEFT, padx=20)
+        
+        ttk.Button(top_bar, text="录入新题", command=self.admin_add_question_dialog, bootstyle="warning").pack(side=RIGHT, padx=5)
+        ttk.Button(top_bar, text="刷新", command=self.admin_refresh_data, bootstyle="info").pack(side=RIGHT, padx=5)
 
-        content = ttk.Frame(self, padding=20)
-        content.pack(fill=BOTH, expand=True)
+        content = ttk.Frame(self, padding=20); content.pack(fill=BOTH, expand=True)
+        left_panel = ttk.Frame(content); left_panel.pack(side=LEFT, fill=Y, padx=(0, 20))
 
-        left = ttk.Labelframe(content, text="添加考生", padding=15)
-        left.pack(side=LEFT, fill=Y, padx=(0, 20))
-        ttk.Label(left, text="学号:").pack(anchor=W); self.add_id_entry = ttk.Entry(left); self.add_id_entry.pack(fill=X, pady=5)
-        ttk.Label(left, text="姓名:").pack(anchor=W); self.add_name_entry = ttk.Entry(left); self.add_name_entry.pack(fill=X, pady=5)
-        ttk.Button(left, text=" 添加", command=self.admin_add_student, bootstyle="success").pack(fill=X, pady=20)
+        setting_frame = ttk.Labelframe(left_panel, text="考试参数设置", padding=15, bootstyle="info")
+        setting_frame.pack(fill=X, pady=(0, 20))
+        self.lbl_q_count = ttk.Label(setting_frame, text="题库总数: 加载中...")
+        self.lbl_q_count.pack(anchor=W)
+        ttk.Label(setting_frame, text="单次考试题数:").pack(anchor=W, pady=(10,0))
+        self.ent_exam_num = ttk.Entry(setting_frame, width=10); self.ent_exam_num.pack(fill=X, pady=5)
+        ttk.Button(setting_frame, text="保存设置", command=self.admin_set_exam_num, bootstyle="success-outline").pack(fill=X)
 
-        right = ttk.Labelframe(content, text="考生监控", padding=15)
-        right.pack(side=LEFT, fill=BOTH, expand=True)
-        self.tree = ttk.Treeview(right, columns=("学号", "姓名", "状态", "成绩"), show="headings")
+        add_stu_frame = ttk.Labelframe(left_panel, text="添加考生", padding=15, bootstyle="success")
+        add_stu_frame.pack(fill=X)
+        ttk.Label(add_stu_frame, text="学号:").pack(anchor=W); self.add_id_entry = ttk.Entry(add_stu_frame); self.add_id_entry.pack(fill=X, pady=5)
+        ttk.Label(add_stu_frame, text="姓名:").pack(anchor=W); self.add_name_entry = ttk.Entry(add_stu_frame); self.add_name_entry.pack(fill=X, pady=5)
+        ttk.Button(add_stu_frame, text="添加", command=self.admin_add_student, bootstyle="success").pack(fill=X, pady=10)
+
+        right_panel = ttk.Labelframe(content, text="考生列表 (右键可删除)", padding=15, bootstyle="secondary")
+        right_panel.pack(side=LEFT, fill=BOTH, expand=True)
+
+        self.tree = ttk.Treeview(right_panel, columns=("学号", "姓名", "状态", "成绩"), show="headings")
         for c in ("学号", "姓名", "状态", "成绩"): self.tree.heading(c, text=c); self.tree.column(c, width=100)
         self.tree.pack(fill=BOTH, expand=True)
         self.tree.bind("<Double-1>", self.admin_reset_student)
+        self.tree.bind("<Button-3>", self.show_context_menu)
         
+        self.context_menu = ttk.Menu(self, tearoff=0)
+        self.context_menu.add_command(label="删除该考生", command=self.admin_delete_student)
         self.admin_refresh_data()
-
+            
+    def show_context_menu(self, event):
+        item = self.tree.identify_row(event.y)
+        if item:
+            self.tree.selection_set(item)
+            self.context_menu.post(event.x_root, event.y_root)
+            
     def admin_refresh_data(self):
         try:
-            # 1. 发送请求
-            self.sock.send(b"ADMIN_GET_STU")
-            
-            # 2. 接收数据 (使用之前修复过的 recv_packet)
+            self.send_packet("ADMIN_GET_STU")
             data = self.recv_packet()
-            
             if data and data.startswith("STU_LIST|"):
-                # 清空现有表格
-                for item in self.tree.get_children(): 
-                    self.tree.delete(item)
-                
-                # === 新增逻辑：先解析，再排序 ===
-                parsed_students = []
-                
-                # C语言发来的格式: ID,Name,Taken,Score;ID,Name...
-                raw_items = data[9:].split(';')
-                
-                for item in raw_items:
-                    if not item: continue
-                    parts = item.split(',')
-                    if len(parts) < 4: continue # 防止脏数据
+                content = data[9:] 
+                if '|' in content:
+                    config_str, stu_data_str = content.split('|', 1)
+                    total_q, exam_n = config_str.split(',')
+                    self.lbl_q_count.config(text=f"题库总数: {total_q}")
                     
-                    sid, name, taken_str, score_str = parts
+                    for item in self.tree.get_children(): self.tree.delete(item)
+                    parsed_students = []
+                    for item in stu_data_str.split(';'):
+                        if not item: continue
+                        parts = item.split(',')
+                        if len(parts) < 4: continue
+                        parsed_students.append({
+                            "id": parts[0], "name": parts[1], 
+                            "status": "已考" if int(parts[2]) else "未考",
+                            "score": int(parts[3]), "is_taken": int(parts[2])
+                        })
                     
-                    # 将字符串转换为数字，以便正确排序
-                    score = int(score_str)
-                    is_taken = int(taken_str)
-                    status_text = "已考" if is_taken else "未考"
-                    
-                    # 存入临时列表字典
-                    parsed_students.append({
-                        "id": sid,
-                        "name": name,
-                        "status": status_text,
-                        "score": score,
-                        "is_taken": is_taken
-                    })
-                
-                # === 核心排序逻辑 ===
-                # key参数定义排序规则：
-                # 规则1: -x['score'] (分数由高到低，因为默认是升序，加负号变降序)
-                # 规则2: -x['is_taken'] (同分情况下，已考的排前面)
-                # 规则3: x['id'] (分数状态都一样，按学号从小到大排)
-                parsed_students.sort(key=lambda x: (-x['score'], -x['is_taken'], x['id']))
-
-                # 3. 将排序好的数据插入表格
-                for stu in parsed_students:
-                    self.tree.insert("", END, values=(stu['id'], stu['name'], stu['status'], stu['score']))
-                    
-        except Exception as e:
-            messagebox.showerror("刷新失败", str(e))
-            print(f"Refresh Error: {e}") 
+                    parsed_students.sort(key=lambda x: (-x['score'], -x['is_taken'], x['id']))
+                    for s in parsed_students:
+                        self.tree.insert("", END, values=(s['id'], s['name'], s['status'], s['score']))
+        except Exception as e: print(e) 
 
     def admin_add_student(self):
         sid, name = self.add_id_entry.get(), self.add_name_entry.get()
         if not sid or not name: return
-        self.sock.send(f"ADMIN_ADD_STU|{sid}|{name}".encode())
-        if self.recv_packet() == "OK":
-            messagebox.showinfo("OK", "添加成功"); self.admin_refresh_data()
+        self.send_packet(f"ADMIN_ADD_STU|{sid}|{name}")
+        if self.recv_packet() == "OK": messagebox.showinfo("OK", "添加成功"); self.admin_refresh_data()
         else: messagebox.showerror("Fail", "失败")
 
     def admin_reset_student(self, event):
@@ -194,7 +183,7 @@ class ExamApp(ttk.Window):
         if not item: return
         vals = self.tree.item(item, "values")
         if messagebox.askyesno("Confirm", f"重置 {vals[1]}?"):
-            self.sock.send(f"ADMIN_RESET_STU|{vals[0]}".encode())
+            self.send_packet(f"ADMIN_RESET_STU|{vals[0]}")
             if self.recv_packet() == "OK": self.admin_refresh_data()
 
     # ==================== 考生 ====================
@@ -209,12 +198,11 @@ class ExamApp(ttk.Window):
     def student_connect(self):
         sid = self.stu_id_entry.get()
         if not self.create_connection(): return
-        self.sock.send(f"LOGIN|{sid}".encode())
+        self.send_packet(f"LOGIN|{sid}")
         threading.Thread(target=self.student_listen_loop, daemon=True).start()
 
     def student_listen_loop(self):
         while True:
-            # 使用缓冲接收函数
             data = self.recv_packet()
             if not data: 
                 print("连接已断开")
@@ -222,11 +210,8 @@ class ExamApp(ttk.Window):
             self.after(0, lambda: self.handle_student_packet(data))
 
     def handle_student_packet(self, data):
-        # 【修复3】最后的防线：如果 data 依然是 None，直接返回不处理
-        if not data: 
-            return
-
-        print(f"DEBUG RECEIVE: {data[:100]}...") 
+        if not data: return
+        print(f"DEBUG RECEIVE: {data[:50]}...") 
         
         if data.startswith("LOGIN_OK"): 
             self.show_exam_view()
@@ -235,9 +220,7 @@ class ExamApp(ttk.Window):
             self.disconnect_and_return()
         elif data.startswith("QUE|"): 
             parts = data.split("|")
-            # 简单的防崩溃检查，防止 split 后长度不够
-            if len(parts) >= 2:
-                self.update_question_ui(parts)
+            if len(parts) >= 2: self.update_question_ui(parts)
         elif data.startswith("MSG|"): 
             messagebox.showinfo("Info", data[4:])
         elif data.startswith("REPORT|"): 
@@ -245,59 +228,113 @@ class ExamApp(ttk.Window):
 
     def show_exam_view(self):
         self.clear_ui()
-        self.q_label = ttk.Label(self, text="Loading...", font=("Microsoft YaHei", 16), wraplength=800); self.q_label.pack(pady=30, padx=20)
-        self.opt_frame = ttk.Frame(self); self.opt_frame.pack(pady=20)
+        # 顶部题目显示
+        self.q_label = ttk.Label(self, text="Loading...", font=("Microsoft YaHei", 16), wraplength=800)
+        self.q_label.pack(pady=30, padx=20)
+        
+        # 选项区域
+        self.opt_frame = ttk.Frame(self)
+        self.opt_frame.pack(pady=20)
+        
+        # 底部提交区域
+        self.action_frame = ttk.Frame(self)
+        self.action_frame.pack(pady=20)
+        self.btn_submit = ttk.Button(self.action_frame, text="确认提交本题", command=self.submit_current_answer, bootstyle="warning", width=20)
+        self.btn_submit.pack()
 
+        # 【重要】初始化多选集合，防止 AttributeError
+        self.current_selection = set()
+        
     def safe_send_answer(self, choice):
-        """
-        发送答案时增加异常捕获。
-        如果服务器已经因为考试结束而关闭了连接，
-        这里会捕获错误，防止程序闪退。
-        """
-        try:
-            if self.sock:
-                self.sock.send(choice.encode())
-        except Exception as e:
-            print(f"停止发送 (考试已结束或连接断开): {e}")
+        # 【修复】使用统一的 send_packet (带 $$$)
+        self.send_packet(choice)
     
+    def submit_current_answer(self):
+        """提交答案"""
+        if not self.current_selection:
+            messagebox.showwarning("提示", "请至少选择一个选项！")
+            return
+        
+        # 1. 将集合转为列表并排序 (确保 "BA" 变成 "AB")
+        sorted_ans = sorted(list(self.current_selection))
+        final_answer_str = "".join(sorted_ans) # e.g. "ABD"
+        
+        # 2. 发送给 C 服务器 (会自动加 $$$)
+        self.send_packet(final_answer_str)
+        
+        
     def update_question_ui(self, parts):
-        self.q_label.config(text=parts[1])
-        for w in self.opt_frame.winfo_children(): w.destroy()
-        for i, opt in enumerate(parts[2:6]):
-            l = ['A','B','C','D'][i]
-            ttk.Button(self.opt_frame, text=f"{l}. {opt}", command=lambda x=l: self.safe_send_answer(x), width=40, bootstyle="info-outline").pack(pady=5)
+        """
+        parts: [QUE, 题干, A, B, C, D]
+        """
+        # ==================== 【修复开始】 ====================
+        # 安全检查：防止 LOGIN_OK 处理慢于 QUE 包，导致 q_label 未创建就调用
+        if not hasattr(self, 'q_label') or self.q_label is None:
+            # 如果组件不存在，说明界面还没切换，强制切换一次
+            self.show_exam_view()
+        # ==================== 【修复结束】 ====================
 
+        # 1. 更新题干
+        try:
+            self.q_label.config(text=parts[1])
+        except Exception as e:
+            print(f"UI Update Error: {e}")
+            return
+
+        # 2. 清空旧选项
+        for w in self.opt_frame.winfo_children(): w.destroy()
+        self.current_selection.clear() # 重置选中状态 (确保这一行存在)
+        
+        # 3. 动态生成 A, B, C, D 四个按钮
+        options = parts[2:6] 
+        for i, opt_text in enumerate(options):
+            char = ['A', 'B', 'C', 'D'][i]
+            
+            btn = ttk.Button(
+                self.opt_frame, 
+                text=f"{char}. {opt_text}", 
+                width=50, 
+                bootstyle="secondary-outline"
+            )
+            btn.configure(command=lambda b=btn, c=char: self.toggle_option(b, c))
+            btn.pack(pady=5, ipady=5)
+    
+    def toggle_option(self, btn, char):
+        """切换选项的选中状态 (高亮/取消高亮)"""
+        if char in self.current_selection:
+            # 已经选中 -> 取消选中
+            self.current_selection.remove(char)
+            btn.configure(bootstyle="secondary-outline") # 变回灰色空心
+        else:
+            # 未选中 -> 选中
+            self.current_selection.add(char)
+            btn.configure(bootstyle="success") # 变为绿色实心
+     
     def show_report_ui(self, report):
         self.clear_ui()
-        
-        # 标题
         ttk.Label(self, text="AI 智能评估报告", font=("Microsoft YaHei", 18, "bold"), bootstyle="info").pack(pady=10)
-        
-        # === 【修复重点】给 ScrolledText 单独设置字体和字号 ===
-        # font=("Microsoft YaHei", 12) : 使用微软雅黑，字号 12 (比默认的大且清晰)
         st = scrolledtext.ScrolledText(self, height=20, font=("Microsoft YaHei", 12))
-        
         st.pack(fill=BOTH, expand=True, padx=20, pady=5)
         st.insert(END, report)
-        
-        # 设置为只读，防止用户误删报告内容
         st.config(state=DISABLED) 
-        
         ttk.Button(self, text="退出", command=self.disconnect_and_return, bootstyle="danger").pack(pady=20) 
 
     def create_connection(self):
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.settimeout(2); self.sock.connect((SERVER_IP, SERVER_PORT)); self.sock.settimeout(None)
+            self.buffer = b"" # 清空 buffer
             return True
         except: messagebox.showerror("Err", "连接失败"); return False
 
     def disconnect_and_return(self):
-        if self.sock: self.sock.close()
+        if self.sock: 
+            try: self.sock.close()
+            except: pass
+            self.sock = None
         self.show_main_menu()
     
     def start_local_practice(self):
-        """不需要连接 C 服务器，直接读取本地 questions.txt"""
         try:
             with open("questions.txt", "r", encoding="utf-8") as f:
                 lines = f.readlines()
@@ -306,19 +343,16 @@ class ExamApp(ttk.Window):
             questions = []
             for line in lines:
                 parts = line.strip().split("|")
-                if len(parts) >= 6:
-                    questions.append(parts)
+                if len(parts) >= 6: questions.append(parts)
             
             if not questions:
                 messagebox.showerror("错误", "题库为空！")
                 return
 
-            # 随机抽 5 题
             random.shuffle(questions)
             self.local_questions = questions[:5] 
             self.local_score = 0
             self.local_idx = 0
-            
             self.show_local_exam_view()
             
         except FileNotFoundError:
@@ -329,41 +363,119 @@ class ExamApp(ttk.Window):
     def show_local_exam_view(self):
         self.clear_ui()
         
-        # 进度显示
+        # 1. 进度显示
         ttk.Label(self, text=f"本地模拟模式 - 第 {self.local_idx + 1} / {len(self.local_questions)} 题", 
                   bootstyle="info").pack(pady=10)
         
+        # 获取当前题目数据 [内容, A, B, C, D, 答案]
         q_data = self.local_questions[self.local_idx]
-        # q_data 结构: [Content, A, B, C, D, Answer]
         
+        # 2. 题目区域
         q_frame = ttk.Labelframe(self, text="题目", padding=15)
         q_frame.pack(fill=BOTH, expand=YES, padx=20)
-        
         ttk.Label(q_frame, text=q_data[0], font=("WenQuanYi Micro Hei", 14), wraplength=700).pack(anchor=W)
         
-        opt_frame = ttk.Frame(self)
-        opt_frame.pack(pady=20)
+        # 3. 选项区域
+        self.opt_frame = ttk.Frame(self)
+        self.opt_frame.pack(pady=20)
         
-        correct_ans = q_data[5]
+        # 【关键】初始化本地多选集合
+        self.local_selection = set()
         
-        # 选项按钮
+        correct_ans = q_data[5] # 正确答案，如 "AB"
+        
+        # 生成选项按钮 (改为切换模式)
         for i, text in enumerate(q_data[1:5]):
             char = ['A', 'B', 'C', 'D'][i]
-            ttk.Button(opt_frame, text=f"{char}. {text}", width=40, bootstyle="secondary-outline",
-                       command=lambda c=char, ans=correct_ans: self.check_local_answer(c, ans)).pack(pady=5)
+            btn = ttk.Button(self.opt_frame, text=f"{char}. {text}", width=50, bootstyle="secondary-outline")
+            # 绑定切换逻辑
+            btn.configure(command=lambda b=btn, c=char: self.local_toggle(b, c))
+            btn.pack(pady=5)
+            
+        # 4. 提交按钮 (点击才算答题)
+        ttk.Button(self, text="确认提交", width=20, bootstyle="warning",
+                   command=lambda: self.check_local_answer(correct_ans)).pack(pady=20)
 
-    def check_local_answer(self, user_choice, correct_choice):
-        if user_choice == correct_choice:
+
+             
+    def local_toggle(self, btn, char):
+        """本地模式：切换选项选中状态"""
+        if char in self.local_selection:
+            self.local_selection.remove(char)
+            btn.configure(bootstyle="secondary-outline") # 取消高亮
+        else:
+            self.local_selection.add(char)
+            btn.configure(bootstyle="success") # 高亮选中
+             
+    def check_local_answer(self, correct_choice):
+        """本地模式：核对答案"""
+        # 1. 检查是否有选中
+        if not hasattr(self, 'local_selection') or not self.local_selection:
+            messagebox.showwarning("提示", "请至少选择一个选项！")
+            return
+            
+        # 2. 获取用户选择并排序 (例如集合{'B','A'} -> "AB")
+        user_choice = "".join(sorted(list(self.local_selection)))
+        
+        # 3. 处理正确答案 (去除首尾空格并转大写，排序防止顺序不同)
+        clean_correct = "".join(sorted(list(correct_choice.strip().upper())))
+        
+        # 4. 比对
+        if user_choice == clean_correct:
             self.local_score += 10
             messagebox.showinfo("正确", "回答正确！ +10分")
         else:
-            messagebox.showerror("错误", f"回答错误！正确答案是 {correct_choice}")
+            messagebox.showerror("错误", f"回答错误！\n你的选择: {user_choice}\n正确答案: {clean_correct}")
             
+        # 5. 进入下一题
         self.local_idx += 1
         if self.local_idx < len(self.local_questions):
             self.show_local_exam_view()
         else:
             messagebox.showinfo("结束", f"模拟练习结束！\n你的得分: {self.local_score}")
             self.show_main_menu()
+
+    def admin_set_exam_num(self):
+        num = self.ent_exam_num.get()
+        if not num.isdigit(): return
+        self.send_packet(f"ADMIN_SET_COUNT|{num}")
+        res = self.recv_packet()
+        if res == "OK": messagebox.showinfo("成功", "设置已更新"); self.admin_refresh_data()
+        else: messagebox.showerror("失败", res.split('|')[1])
+
+    def admin_delete_student(self):
+        item = self.tree.selection()
+        if not item: return
+        vals = self.tree.item(item, "values")
+        if messagebox.askyesno("危险操作", f"确定要永久删除考生 {vals[1]} ({vals[0]}) 吗？"):
+            self.send_packet(f"ADMIN_DEL_STU|{vals[0]}")
+            if self.recv_packet() == "OK": self.admin_refresh_data()
+            else: messagebox.showerror("错误", "删除失败")
+
+    def admin_add_question_dialog(self):
+        win = ttk.Toplevel(self); win.title("录入新题"); win.geometry("500x600")
+        ttk.Label(win, text="题干内容:").pack(anchor=W, padx=20, pady=5)
+        t_content = scrolledtext.ScrolledText(win, height=4); t_content.pack(fill=X, padx=20)
+        vars = []
+        for opt in ['A', 'B', 'C', 'D']:
+            ttk.Label(win, text=f"选项 {opt}:").pack(anchor=W, padx=20, pady=2)
+            e = ttk.Entry(win); e.pack(fill=X, padx=20)
+            vars.append(e)
+        ttk.Label(win, text="正确答案 (如 A):").pack(anchor=W, padx=20, pady=5)
+        t_ans = ttk.Entry(win); t_ans.pack(fill=X, padx=20)
+        
+        def submit():
+            content = t_content.get("1.0", END).strip().replace('\n', ' ')
+            opts = [v.get().strip() for v in vars]
+            ans = t_ans.get().strip().upper()
+            if not content or not all(opts) or not ans: messagebox.showwarning("提示", "所有字段都必须填写"); return
+            safe_content = content.replace('|', ' ')
+            msg = f"ADMIN_ADD_QUE|{safe_content}|{opts[0]}|{opts[1]}|{opts[2]}|{opts[3]}|{ans}"
+            self.send_packet(msg)
+            res = self.recv_packet()
+            if res == "OK": messagebox.showinfo("成功", "题目录入成功！"); win.destroy(); self.admin_refresh_data()
+            else: messagebox.showerror("失败", res)
+
+        ttk.Button(win, text="提交保存", command=submit, bootstyle="warning").pack(pady=20)
 
 if __name__ == "__main__": ExamApp().mainloop()

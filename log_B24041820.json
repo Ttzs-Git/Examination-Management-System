@@ -1,8 +1,7 @@
 [
-]
-{"question": "以下哪个是换行符？", "user_answer": "B", "correct_answer": "A"},
-  {"question": "main函数可以有参数吗？", "user_answer": "A", "correct_answer": "B"},
-  {"question": "变量 int a=10; a++; a的值是？", "user_answer": "C", "correct_answer": "B"},
-  {"question": "C99标准引入了？", "user_answer": "B", "correct_answer": "A"},
-  {"question": "LINE 宏表示？", "user_answer": "A", "correct_answer": "B"}
+  {"question": "sscanf函数从哪里读取？", "user_answer": "B", "correct_answer": "C"},
+  {"question": "字符 'A' 对应的ASCII码值大约是？", "user_answer": "BC", "correct_answer": "B"},
+  {"question": "#ifndef的作用是？", "user_answer": "A", "correct_answer": "B"},
+  {"question": "short s = 0x1234; char c = (char)&s; 若c为0x34，则是？", "user_answer": "C", "correct_answer": "B"},
+  {"question": "变量 int a=10; int b = a++; b的值是？", "user_answer": "B", "correct_answer": "A"}
 ]

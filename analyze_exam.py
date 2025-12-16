@@ -51,7 +51,8 @@ def analyze_performance(exam_data):
     """
 
     try:
-        print("正在通过火山方舟向豆包大模型发送请求...")
+        sys.stderr.write("正在通过火山方舟向豆包大模型发送请求...\n")
+        # print("正在通过火山方舟向豆包大模型发送请求...")
         
         # --- 3. 调用 API，model 参数传入 Endpoint ID ---
         response = client.chat.completions.create(

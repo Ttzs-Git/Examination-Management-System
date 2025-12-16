@@ -23,10 +23,14 @@ void loadFiles() {
             trim(line);
             if(strlen(line) < 5) continue;
             Question q;
-            sscanf(line, "%[^|]|%[^|]|%[^|]|%[^|]|%[^|]|%s", 
+            // 【修复】增加长度限制
+            int fields = sscanf(line, "%255[^|]|%99[^|]|%99[^|]|%99[^|]|%99[^|]|%9s", 
                q.content, q.optionA, q.optionB, q.optionC, q.optionD, q.answer);
-            q.id = qCount + 1;
-            questionBank[qCount++] = q;
+            
+            if (fields == 6) {
+                q.id = qCount + 1;
+                questionBank[qCount++] = q;
+            }
         }
         fclose(fp);
     }
@@ -34,7 +38,7 @@ void loadFiles() {
     fp = fopen(FILE_STUDENTS, "r");
     sCount = 0;
     if (fp) {
-        while (sCount < MAX_STUDENTS && fscanf(fp, "%s %s %d %d", 
+        while (sCount < MAX_STUDENTS && fscanf(fp, "%19s %49s %d %d", 
                studentList[sCount].id, studentList[sCount].name, 
                &studentList[sCount].hasTaken, &studentList[sCount].score) == 4) {
             sCount++;

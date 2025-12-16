@@ -1,3 +1,4 @@
+// server.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,12 +6,12 @@
 #include <pthread.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#include <time.h>  // 【新增】引入 time.h
 #include "data.h"
 
 #define PORT 8888
-#define BUFFER_SIZE 4096
 
-// 互斥锁，保护共享数据（题库、学生列表）
+// 互斥锁，保护共享数据
 pthread_mutex_t data_lock = PTHREAD_MUTEX_INITIALIZER;
 
 void *client_handler(void *socket_desc);
@@ -20,14 +21,14 @@ int main() {
     struct sockaddr_in address;
     int addrlen = sizeof(address);
 
-    // 忽略管道破裂信号
-    signal(SIGPIPE, SIG_IGN);
+    // 【修复】初始化随机数种子，否则每次重启抽题顺序都一样
+    srand((unsigned int)time(NULL));
 
-    // 加载数据
+    signal(SIGPIPE, SIG_IGN); // 忽略管道破裂信号
+
     loadFiles();
     printf(">> [C Backend] 数据加载完成。题目数: %d, 学生数: %d\n", qCount, sCount);
 
-    // 创建 Socket
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) { perror("socket failed"); exit(1); }
     
     int opt = 1;
@@ -48,9 +49,8 @@ int main() {
             continue;
         }
 
-        // 创建新线程处理客户端
         pthread_t sniffer_thread;
-        new_sock = malloc(1);
+        new_sock = malloc(sizeof(int));
         *new_sock = new_socket;
 
         if (pthread_create(&sniffer_thread, NULL, client_handler, (void *)new_sock) < 0) {
@@ -58,7 +58,6 @@ int main() {
             free(new_sock);
             continue;
         }
-        // 线程分离，结束后自动回收资源
         pthread_detach(sniffer_thread);
         printf(">> [Event] 新客户端连接 (Socket: %d)\n", new_socket);
     }
