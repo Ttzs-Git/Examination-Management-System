@@ -42,12 +42,12 @@ def analyze_performance(exam_data):
     ```
 
     请你基于以上数据，为这位学生生成一份简洁、专业且有建设性的学习评估报告。
-    报告必须包含以下几个部分，并使用Markdown格式化：
+    报告必须包含以下几个部分，并使用文本格式化(禁止使用markdown)：
 
-    1.  **整体表现总结**
-    2.  **知识亮点 (Strengths)**
-    3.  **待提升点 (Weaknesses)**
-    4.  **学习建议 (Actionable Advice)**
+    1.  整体表现总结
+    2.  知识亮点 (Strengths)
+    3.  待提升点 (Weaknesses)
+    4.  学习建议 (Actionable Advice)
     """
 
     try:

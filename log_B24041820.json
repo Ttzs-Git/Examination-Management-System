@@ -1,0 +1,8 @@
+[
+]
+{"question": "以下哪个是换行符？", "user_answer": "B", "correct_answer": "A"},
+  {"question": "main函数可以有参数吗？", "user_answer": "A", "correct_answer": "B"},
+  {"question": "变量 int a=10; a++; a的值是？", "user_answer": "C", "correct_answer": "B"},
+  {"question": "C99标准引入了？", "user_answer": "B", "correct_answer": "A"},
+  {"question": "LINE 宏表示？", "user_answer": "A", "correct_answer": "B"}
+]
