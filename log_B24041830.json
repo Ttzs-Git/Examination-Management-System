@@ -1,8 +1,7 @@
 [
-]
-{"question": "C语言支持函数递归调用吗？", "user_answer": "D", "correct_answer": "A"},
-  {"question": "int a[10]; &a 和 a 的数值相同吗？", "user_answer": "B", "correct_answer": "A"},
-  {"question": "字符 'A' 对应的ASCII码值大约是？", "user_answer": "B", "correct_answer": "B"},
-  {"question": "typedef int (FUNC)(int); 定义了？", "user_answer": "C", "correct_answer": "B"},
-  {"question": "Doxygen用于？", "user_answer": "B", "correct_answer": "A"}
+  {"question": "数组名作为函数参数传递时，退化为？", "user_answer": "BD", "correct_answer": "B"},
+  {"question": "#if 0 ... #endif 的作用是？", "user_answer": "BC", "correct_answer": "B"},
+  {"question": "表达式 !5 的值是？", "user_answer": "BD", "correct_answer": "C"},
+  {"question": "int p; 是什么意思？", "user_answer": "B", "correct_answer": "B"},
+  {"question": "全局变量的默认初始值是？", "user_answer": "C", "correct_answer": "C"}
 ]

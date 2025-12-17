@@ -1,0 +1,7 @@
+[
+  {"question": "二分查找要求数组？", "user_answer": "D", "correct_answer": "B"},
+  {"question": "用于包含头文件的预处理指令是？", "user_answer": "D", "correct_answer": "B"},
+  {"question": "求字节数运算符是？", "user_answer": "D", "correct_answer": "A"},
+  {"question": "用于释放动态内存的函数是？", "user_answer": "D", "correct_answer": "B"},
+  {"question": "野指针是指？", "user_answer": "D", "correct_answer": "B"}
+]

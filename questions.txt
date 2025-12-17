@@ -229,3 +229,4 @@ NULL指针解引用会发生什么？|返回0|返回NULL|段错误/崩溃|正常
 如果a=1,b=2,则a*b=|2|2|3|4|AB
 printf("hello world")，输出是什么|hello world|“hello world”|helloworld|hello world|AD
 int a=1,a++,后a=|1|2|3|4|B
+prinf("hello world~")|hello world~|hello world~|hello world|helloworld~|AB

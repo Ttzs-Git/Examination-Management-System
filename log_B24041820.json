@@ -1,7 +1,8 @@
 [
-  {"question": "sscanf函数从哪里读取？", "user_answer": "B", "correct_answer": "C"},
-  {"question": "字符 'A' 对应的ASCII码值大约是？", "user_answer": "BC", "correct_answer": "B"},
-  {"question": "#ifndef的作用是？", "user_answer": "A", "correct_answer": "B"},
-  {"question": "short s = 0x1234; char c = (char)&s; 若c为0x34，则是？", "user_answer": "C", "correct_answer": "B"},
-  {"question": "变量 int a=10; int b = a++; b的值是？", "user_answer": "B", "correct_answer": "A"}
+  {"question": "段错误(Segmentation Fault)通常由什么引起？", "user_answer": "BC", "correct_answer": "B"},
+  {"question": "extern关键字用于？", "user_answer": "B", "correct_answer": "A"},
+  {"question": "栈的特点是？", "user_answer": "D", "correct_answer": "B"},
+  {"question": "C语言中变量必须先定义后使用吗？", "user_answer": "BD", "correct_answer": "A"},
+  {"question": "关闭文件的函数是？", "user_answer": "B", "correct_answer": "B"},
+  {"question": "如何引用结构体成员？", "user_answer": "C", "correct_answer": "C"}
 ]
