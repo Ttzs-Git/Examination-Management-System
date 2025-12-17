@@ -6,9 +6,8 @@
 #include <pthread.h>
 #include <arpa/inet.h>
 #include <signal.h>
-#include <time.h>  // 【新增】引入 time.h
+#include <time.h>  
 #include "data.h"
-
 #define PORT 8888
 
 // 互斥锁，保护共享数据
@@ -21,9 +20,8 @@ int main() {
     struct sockaddr_in address;
     int addrlen = sizeof(address);
 
-    // 【修复】初始化随机数种子，否则每次重启抽题顺序都一样
     srand((unsigned int)time(NULL));
-
+    g_exam_started = 0;
     signal(SIGPIPE, SIG_IGN); // 忽略管道破裂信号
 
     loadFiles();

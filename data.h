@@ -33,6 +33,7 @@ extern Student studentList[MAX_STUDENTS];
 extern int sCount;
 extern int examQuestionNum;
 extern pthread_mutex_t data_lock; // 全局锁
+extern int g_exam_started; 
 
 void loadFiles();
 void saveQuestions();

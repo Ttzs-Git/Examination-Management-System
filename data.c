@@ -8,7 +8,7 @@ int qCount = 0;
 Student studentList[MAX_STUDENTS];
 int sCount = 0;
 int examQuestionNum = 5;
-
+int g_exam_started = 0; 
 void trim(char* str) {
     size_t len = strlen(str);
     if(len > 0 && str[len-1] == '\n') str[len-1] = '\0';

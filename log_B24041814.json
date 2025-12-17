@@ -1,7 +1,7 @@
 [
-  {"question": "表达式 5 / 2 的结果是？", "user_answer": "B", "correct_answer": "B"},
-  {"question": "%d格式控制符用于输出？", "user_answer": "C", "correct_answer": "C"},
-  {"question": "int main(int argc, char argv[])中argc表示？", "user_answer": "B", "correct_answer": "B"},
-  {"question": "逗号表达式 (a=3, b=4, a+b) 的值是？", "user_answer": "C", "correct_answer": "C"},
-  {"question": "volatile关键字告诉编译器？", "user_answer": "B", "correct_answer": "B"}
+  {"question": "C语言中，逻辑“假”通常用什么数字表示？", "user_answer": "D", "correct_answer": "A"},
+  {"question": "C语言诞生于哪个实验室？", "user_answer": "D", "correct_answer": "B"},
+  {"question": "#pragma once的作用是？", "user_answer": "D", "correct_answer": "B"},
+  {"question": "C99标准引入了？", "user_answer": "D", "correct_answer": "A"},
+  {"question": "0x开头表示什么进制？", "user_answer": "D", "correct_answer": "D"}
 ]

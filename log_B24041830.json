@@ -1,7 +1,7 @@
 [
-  {"question": "数组名作为函数参数传递时，退化为？", "user_answer": "BD", "correct_answer": "B"},
-  {"question": "#if 0 ... #endif 的作用是？", "user_answer": "BC", "correct_answer": "B"},
-  {"question": "表达式 !5 的值是？", "user_answer": "BD", "correct_answer": "C"},
-  {"question": "int p; 是什么意思？", "user_answer": "B", "correct_answer": "B"},
-  {"question": "全局变量的默认初始值是？", "user_answer": "C", "correct_answer": "C"}
+  {"question": "如果a=1,b=2,则a*b=", "user_answer": "B", "correct_answer": "AB"},
+  {"question": "short类型通常占多少字节？", "user_answer": "C", "correct_answer": "B"},
+  {"question": "SEEK_END表示？", "user_answer": "B", "correct_answer": "C"},
+  {"question": "赋值运算符是？", "user_answer": "C", "correct_answer": "B"},
+  {"question": "ptrdiff_t是？", "user_answer": "B", "correct_answer": "A"}
 ]

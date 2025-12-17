@@ -9,7 +9,7 @@
 #include "data.h"
 
 #define DELIMITER "$$$"
-
+int calculate_rank(int score);
 // ==========================================
 // 【修复】安全的发送函数 (循环 write)
 // ==========================================
@@ -92,6 +92,13 @@ void *client_handler(void *socket_desc) {
         if (valread <= 0) break; // 断开连接
 
         // ---------------- 管理员功能 ----------------
+        if (strncmp(buffer, "ADMIN_START_EXAM", 16) == 0) {
+            pthread_mutex_lock(&data_lock);
+            g_exam_started = 1; // 设置全局标记
+            pthread_mutex_unlock(&data_lock);
+            send_safe(sock, "OK");
+            printf(">> [Admin] 管理员已开启全员考试！\n");
+        }
 
         if (strncmp(buffer, "ADMIN_GET_STU", 13) == 0) {
             pthread_mutex_lock(&data_lock);
@@ -193,7 +200,36 @@ void *client_handler(void *socket_desc) {
                 send_safe(sock, "OK");
             }
         }
-
+        // ---------------- 公共功能 ----------------
+        else if (strncmp(buffer, "QUERY_SCORE|", 12) == 0) {
+            char query[50];
+            sscanf(buffer + 12, "%49s", query);
+            
+            pthread_mutex_lock(&data_lock);
+            int found = -1;
+            // 简单遍历查找
+            for(int i=0; i<sCount; i++) {
+                if (strcmp(studentList[i].id, query) == 0 || strcmp(studentList[i].name, query) == 0) {
+                    found = i;
+                    break;
+                }
+            }
+            
+            char resp[256];
+            if (found != -1) {
+                if (studentList[found].hasTaken) {
+                    int rank = calculate_rank(studentList[found].score);
+                    // 返回格式: RESULT|姓名|分数|排名
+                    sprintf(resp, "SCORE_RESULT|%s|%d|%d", studentList[found].name, studentList[found].score, rank);
+                } else {
+                    sprintf(resp, "SCORE_FAIL|该考生 (%s) 尚未参加考试", studentList[found].name);
+                }
+            } else {
+                sprintf(resp, "SCORE_FAIL|未找到该考生信息");
+            }
+            pthread_mutex_unlock(&data_lock);
+            send_safe(sock, resp);
+        }
         // ---------------- 考生功能 ----------------
         else if (strncmp(buffer, "LOGIN|", 6) == 0) {
             char id[30];
@@ -212,7 +248,36 @@ void *client_handler(void *socket_desc) {
                 char resp[200];
                 sprintf(resp, "LOGIN_OK|%s", studentList[idx].name);
                 send_safe(sock, resp);
-                
+                 int waiting = 1;
+                while (waiting) {
+                    pthread_mutex_lock(&data_lock);
+                    if (g_exam_started == 1) waiting = 0;
+                    pthread_mutex_unlock(&data_lock);
+
+                    if (waiting) {
+                        // 第一次进入循环发送 WAIT 信号，通知客户端显示遮罩
+                        static int sent_wait = 0; // 注意：这里简单处理，实际每个线程独立栈，不需要static，直接用局部变量标记即可
+                        // 为了简单，我们每次循环并不都需要发包，只要让客户端不收到 QUE 即可
+                        // 但为了用户体验，我们可以发一次 WAIT
+                        
+                        // 更简单的做法：客户端收到 LOGIN_OK 后，如果服务器不发 QUE，客户端就在等。
+                        // 我们发送一个显式的 WAIT 指令让客户端弹窗
+                        send_safe(sock, "WAIT|等待管理员开启考试...");
+                        
+                        // 轮询等待，每秒检查一次
+                        while (1) {
+                            pthread_mutex_lock(&data_lock);
+                            int start = g_exam_started;
+                            pthread_mutex_unlock(&data_lock);
+                            
+                            if (start) break; // 考试开始了！
+                            
+                            sleep(1); 
+                            // 这里可以通过 send_safe 发送心跳包防止断连，或者利用 TCP KeepAlive
+                        }
+                        waiting = 0; // 退出外层循环
+                    }
+                }
                 // 抽题
                 int *indices = malloc(qCount * sizeof(int));
                 for(int i=0; i<qCount; i++) indices[i] = i;
@@ -298,4 +363,14 @@ void *client_handler(void *socket_desc) {
     }
     close(sock);
     return 0;
+}
+
+int calculate_rank(int score) {
+    int rank = 1;
+    for(int i=0; i<sCount; i++) {
+        if(studentList[i].hasTaken && studentList[i].score > score) {
+            rank++;
+        }
+    }
+    return rank;
 }

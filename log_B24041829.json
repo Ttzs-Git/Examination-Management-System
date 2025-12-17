@@ -1,7 +1,7 @@
 [
-  {"question": "二分查找要求数组？", "user_answer": "D", "correct_answer": "B"},
-  {"question": "用于包含头文件的预处理指令是？", "user_answer": "D", "correct_answer": "B"},
-  {"question": "求字节数运算符是？", "user_answer": "D", "correct_answer": "A"},
-  {"question": "用于释放动态内存的函数是？", "user_answer": "D", "correct_answer": "B"},
-  {"question": "野指针是指？", "user_answer": "D", "correct_answer": "B"}
+  {"question": "fseek函数用于？", "user_answer": "C", "correct_answer": "A"},
+  {"question": "C99标准引入了？", "user_answer": "B", "correct_answer": "A"},
+  {"question": "C语言中，逻辑“假”通常用什么数字表示？", "user_answer": "BC", "correct_answer": "A"},
+  {"question": "float类型的有效数字大约是？", "user_answer": "C", "correct_answer": "B"},
+  {"question": "C语言中，形参和实参占用相同的内存单元吗？", "user_answer": "D", "correct_answer": "B"}
 ]

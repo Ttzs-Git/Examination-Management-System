@@ -25,7 +25,7 @@ class ExamApp(ttk.Window):
         
         self.title_font = title_font 
         self.title("智能考试系统")
-        self.geometry("900x600")
+        self.geometry("1000x700")
         self.place_window_center()
         self.sock = None
         self.buffer = b""
@@ -80,14 +80,52 @@ class ExamApp(ttk.Window):
         self.clear_ui()
         frame = ttk.Frame(self, padding=40)
         frame.pack(expand=True)
-        ttk.Label(frame, text="C语言智能考试系统", font=('Microsoft YaHei', 28, "bold"), bootstyle="primary").pack(pady=20)
-        btn_frame = ttk.Frame(frame); btn_frame.pack(pady=40)
         
-        ttk.Button(btn_frame, text="参加网络考试", command=self.show_student_login, bootstyle="success", width=20).pack(side=LEFT, padx=10, ipady=15)
-        ttk.Button(btn_frame, text="本地模拟练习", command=self.start_local_practice, bootstyle="info", width=20).pack(side=LEFT, padx=10, ipady=15)
-        ttk.Button(btn_frame, text="管理员后台", command=self.admin_login_dialog, bootstyle="danger", width=20).pack(side=LEFT, padx=10, ipady=15)
-        ttk.Label(frame, text="提示: 网络考试需先启动 C 后端 Server", bootstyle="secondary").pack(pady=20)
+        ttk.Label(frame, text="C语言智能考试系统", font=('Microsoft YaHei', 32, "bold"), bootstyle="primary").pack(pady=30)
+        
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack(pady=40)
+        
+        # 统一按钮样式
+        btn_style = {"width": 20, "padding": 10}
+        
+        col1 = ttk.Frame(btn_frame); col1.pack(side=LEFT, padx=15)
+        col2 = ttk.Frame(btn_frame); col2.pack(side=LEFT, padx=15)
 
+        ttk.Button(col1, text="参加网络考试", command=self.show_student_login, bootstyle="success", **btn_style).pack(pady=10)
+        ttk.Button(col1, text="本地模拟练习", command=self.start_local_practice, bootstyle="info", **btn_style).pack(pady=10)
+        
+        # 【新增】查询成绩按钮
+        ttk.Button(col2, text="查询成绩排名", command=self.show_query_dialog, bootstyle="warning", **btn_style).pack(pady=10)
+        ttk.Button(col2, text="管理员后台", command=self.admin_login_dialog, bootstyle="danger", **btn_style).pack(pady=10)
+        
+        ttk.Label(frame, text="提示: 网络考试需等待管理员统一指令", bootstyle="secondary").pack(pady=20)
+    
+    def show_query_dialog(self):
+        # 如果没有连接，先连接服务器（查询需要联网）
+        if not self.sock:
+            if not self.create_connection(): return
+
+        query_val = simpledialog.askstring("成绩查询", "请输入 姓名 或 学号 进行查询:")
+        if query_val:
+            self.send_packet(f"QUERY_SCORE|{query_val}")
+            # 开启临时监听线程等待结果，或者简单阻塞接收一次
+            # 简单起见，这里直接阻塞接收一次结果（注意：这会暂时卡住界面1-2秒，但在局域网可接受）
+            threading.Thread(target=self.wait_for_query_result, daemon=True).start()
+    
+    def wait_for_query_result(self):
+        # 独立的接收逻辑，避免阻塞主线程
+        res = self.recv_packet() # 这是一个阻塞调用
+        if res:
+            if res.startswith("SCORE_RESULT|"):
+                # 解析: SCORE_RESULT|ZhangSan|90|5
+                _, name, score, rank = res.split('|')
+                msg = f"查询结果：\n\n考生姓名：{name}\n考试得分：{score} 分\n当前排名：第 {rank} 名"
+                self.after(0, lambda: messagebox.showinfo("查询成功", msg))
+            elif res.startswith("SCORE_FAIL|"):
+                msg = res.split('|')[1]
+                self.after(0, lambda: messagebox.showerror("查询失败", msg))
+        self.disconnect_and_return() # 查询完断开
     # ==================== 管理员 ====================
     def admin_login_dialog(self):
         pwd = simpledialog.askstring("管理员验证", "请输入管理员密码:", show="*")
@@ -98,15 +136,25 @@ class ExamApp(ttk.Window):
         if not self.create_connection(): return
         self.show_admin_panel()
 
+    def admin_start_exam(self):
+        if messagebox.askyesno("确认", "确定要开始考试吗？\n所有在线并在等待的考生将立即收到题目。"):
+            self.send_packet("ADMIN_START_EXAM")
+            res = self.recv_packet()
+            if res == "OK":
+                messagebox.showinfo("成功", "考试指令已发送！")
+            else:
+                messagebox.showerror("失败", "指令发送失败")
+    
     def show_admin_panel(self):
         self.clear_ui()
         top_bar = ttk.Frame(self, padding=10, bootstyle="secondary"); top_bar.pack(fill=X)
         ttk.Button(top_bar, text="返回", command=self.disconnect_and_return, bootstyle="light-outline").pack(side=LEFT)
         ttk.Label(top_bar, text="管理员控制台", font=("Microsoft YaHei", 12, "bold"), foreground="white").pack(side=LEFT, padx=20)
-        
+        ttk.Button(top_bar, text="全员开考", command=self.admin_start_exam, bootstyle="success").pack(side=RIGHT, padx=20)
         ttk.Button(top_bar, text="录入新题", command=self.admin_add_question_dialog, bootstyle="warning").pack(side=RIGHT, padx=5)
         ttk.Button(top_bar, text="刷新", command=self.admin_refresh_data, bootstyle="info").pack(side=RIGHT, padx=5)
-
+        
+         
         content = ttk.Frame(self, padding=20); content.pack(fill=BOTH, expand=True)
         left_panel = ttk.Frame(content); left_panel.pack(side=LEFT, fill=Y, padx=(0, 20))
 
@@ -132,7 +180,7 @@ class ExamApp(ttk.Window):
         self.tree.pack(fill=BOTH, expand=True)
         self.tree.bind("<Double-1>", self.admin_reset_student)
         self.tree.bind("<Button-3>", self.show_context_menu)
-        
+        self.tree.pack(fill=BOTH, expand=True)
         self.context_menu = ttk.Menu(self, tearoff=0)
         self.context_menu.add_command(label="删除该考生", command=self.admin_delete_student)
         self.admin_refresh_data()
@@ -213,19 +261,42 @@ class ExamApp(ttk.Window):
         if not data: return
         print(f"DEBUG RECEIVE: {data[:50]}...") 
         
-        if data.startswith("LOGIN_OK"): 
-            self.show_exam_view()
-        elif data.startswith("LOGIN_FAIL"): 
-            messagebox.showerror("Fail", data.split("|")[1])
-            self.disconnect_and_return()
-        elif data.startswith("QUE|"): 
+        if data.startswith("LOGIN_OK"):
+            # 登录成功，但不直接切界面，可能会收到 WAIT
+            pass 
+        elif data.startswith("WAIT|"):
+            # 【新增】收到等待信号
+            msg_content = data.split("|")[1]
+            self.show_waiting_screen(msg_content)
+            
+        elif data.startswith("QUE|"):
+            # 收到题目，说明开始了
             parts = data.split("|")
-            if len(parts) >= 2: self.update_question_ui(parts)
+            if len(parts) >= 2: 
+                self.update_question_ui(parts)
+        
         elif data.startswith("MSG|"): 
             messagebox.showinfo("Info", data[4:])
         elif data.startswith("REPORT|"): 
             self.show_report_ui(data[7:])
+        elif data.startswith("LOGIN_FAIL"):
+            messagebox.showerror("Fail", data.split("|")[1])
+            self.disconnect_and_return()
 
+    def show_waiting_screen(self, msg):
+        self.clear_ui()
+        frame = ttk.Frame(self, padding=50)
+        frame.pack(expand=True)
+        
+        ttk.Label(frame, text="⏳", font=("Arial", 60)).pack(pady=20)
+        ttk.Label(frame, text=msg, font=("Microsoft YaHei", 24, "bold"), bootstyle="info").pack(pady=10)
+        ttk.Label(frame, text="请不要关闭窗口，考试开始后将自动跳转...", font=("Microsoft YaHei", 12), bootstyle="secondary").pack(pady=20)
+        
+        # 增加一个动态加载条效果
+        pb = ttk.Progressbar(frame, mode='indeterminate', length=400, bootstyle="info-striped")
+        pb.pack(pady=20)
+        pb.start(10)
+    
     def show_exam_view(self):
         self.clear_ui()
         # 顶部题目显示
