@@ -231,3 +231,5 @@ printf("hello world")，输出是什么|hello world|“hello world”|helloworld
 int a=1,a++,后a=|1|2|3|4|B
 prinf("hello world~")|hello world~|hello world~|hello world|helloworld~|AB
 a=1,b=3,a*b=|3|4|5|3|AD
+a=1,b=2,a*b=|2|2|2|2|ABCD
+在四个选项中选一个，选对了给分|1|2|3|4|A

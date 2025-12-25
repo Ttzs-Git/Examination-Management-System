@@ -1,7 +1,0 @@
-[
-  {"question": "逗号表达式 (a=3, b=4, a+b) 的值是？", "user_answer": "D", "correct_answer": "C"},
-  {"question": "rewind()函数用于？", "user_answer": "D", "correct_answer": "B"},
-  {"question": "检测文件结束的函数是？", "user_answer": "D", "correct_answer": "A"},
-  {"question": "三元运算符是？", "user_answer": "CD", "correct_answer": "A"},
-  {"question": "%d格式控制符用于输出？", "user_answer": "D", "correct_answer": "C"}
-]

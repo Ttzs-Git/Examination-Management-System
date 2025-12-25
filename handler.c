@@ -8,11 +8,10 @@
 #include <errno.h>
 #include "data.h"
 
+// 业务逻辑与协议处理中心
 #define DELIMITER "$$$"
 int calculate_rank(int score);
-// ==========================================
-// 【修复】安全的发送函数 (循环 write)
-// ==========================================
+// 消息发送者
 void send_safe(int sock, const char* msg) {
     if (!msg) return;
     int len = strlen(msg);
@@ -25,7 +24,7 @@ void send_safe(int sock, const char* msg) {
     size_t total_len = strlen(packet);
     size_t sent = 0;
     
-    // 【修复】循环发送，确保大数据包（如学生列表）不会被截断
+    // 循环发送
     while (sent < total_len) {
         ssize_t n = write(sock, packet + sent, total_len - sent);
         if (n <= 0) break;
@@ -35,19 +34,18 @@ void send_safe(int sock, const char* msg) {
     free(packet);
 }
 
-// ==========================================
-// 【修复】安全的接收函数 (解决粘包问题)
+// 安全的接收函数 (解决粘包问题)
 // 读取直到遇到 "$$$" 或 缓冲区满
 // 返回：有效数据长度，-1 表示错误/断开
-// ==========================================
+// 解决粘包问题
 int recv_packet(int sock, char *buf, int max_len) {
     int idx = 0;
     char c;
-    int dollar_cnt = 0;
+    int dollar_cnt = 0;// 状态机计数器
     memset(buf, 0, max_len);
 
     while (idx < max_len - 1) {
-        // 逐字节读取是解决粘包最简单的方案（虽然效率略低，但对于此场景足够）
+        // 逐字节读取是解决粘包最简单的方案
         int n = read(sock, &c, 1);
         if (n <= 0) return -1; // 连接断开
         
@@ -55,8 +53,8 @@ int recv_packet(int sock, char *buf, int max_len) {
         
         // 检测 $$$
         if (c == '$') dollar_cnt++;
-        else dollar_cnt = 0;
-        
+        else dollar_cnt = 0;// 一旦断开 重新计数
+        // 截断逻辑
         if (dollar_cnt == 3) {
             buf[idx - 3] = '\0'; // 截断 $$$，保留有效内容
             return idx - 3;
@@ -65,8 +63,9 @@ int recv_packet(int sock, char *buf, int max_len) {
     return -1; // 包太长或未找到结束符
 }
 
-// AI 分析脚本调用 (保持不变)
+// AI 分析脚本调用
 void call_ai_analysis(const char* log_file, char* output_buffer,int max_size) {
+    // 管道通信
     char command[512];
     const char* python_path="/home/ttzs/miniconda3/envs/ros2/bin/python";
     sprintf(command, "export PYTHONIOENCODING=utf-8; %s analyze_exam.py %s", python_path, log_file);
@@ -81,17 +80,18 @@ void call_ai_analysis(const char* log_file, char* output_buffer,int max_size) {
     }
 }
 
+// 线程主程序
 void *client_handler(void *socket_desc) {
-    int sock = *(int*)socket_desc;
+    // 多线程传参模式
+    int sock = *(int*)socket_desc;// 获取参数并释放堆内存
     free(socket_desc);
     char buffer[4096]; 
     
     while (1) {
-        // 【修复】使用 recv_packet 替代 read，解决粘包
         int valread = recv_packet(sock, buffer, sizeof(buffer));
         if (valread <= 0) break; // 断开连接
 
-        // ---------------- 管理员功能 ----------------
+        // 管理员功能 
         if (strncmp(buffer, "ADMIN_START_EXAM", 16) == 0) {
             pthread_mutex_lock(&data_lock);
             g_exam_started = 1; // 设置全局标记
@@ -123,7 +123,6 @@ void *client_handler(void *socket_desc) {
         
         else if (strncmp(buffer, "ADMIN_ADD_STU|", 14) == 0) {
             char id[20], name[50];
-            // 【修复】sscanf 增加长度限制，防止溢出
             sscanf(buffer + 14, "%19[^|]|%49s", id, name);
             pthread_mutex_lock(&data_lock);
             int exist = 0;
@@ -188,7 +187,6 @@ void *client_handler(void *socket_desc) {
                 send_safe(sock, "FAIL|题库已满");
             } else {
                 Question q;
-                // 【修复】增加 sscanf 安全限制
                 sscanf(buffer + 14, "%255[^|]|%99[^|]|%99[^|]|%99[^|]|%99[^|]|%9s", 
                     q.content, q.optionA, q.optionB, q.optionC, q.optionD, q.answer);
                 
@@ -200,7 +198,7 @@ void *client_handler(void *socket_desc) {
                 send_safe(sock, "OK");
             }
         }
-        // ---------------- 公共功能 ----------------
+        // 公共功能 
         else if (strncmp(buffer, "QUERY_SCORE|", 12) == 0) {
             char query[50];
             sscanf(buffer + 12, "%49s", query);
@@ -230,7 +228,7 @@ void *client_handler(void *socket_desc) {
             pthread_mutex_unlock(&data_lock);
             send_safe(sock, resp);
         }
-        // ---------------- 考生功能 ----------------
+        //  考生功能 
         else if (strncmp(buffer, "LOGIN|", 6) == 0) {
             char id[30];
             sscanf(buffer + 6, "%29s", id);
@@ -256,12 +254,7 @@ void *client_handler(void *socket_desc) {
 
                     if (waiting) {
                         // 第一次进入循环发送 WAIT 信号，通知客户端显示遮罩
-                        static int sent_wait = 0; // 注意：这里简单处理，实际每个线程独立栈，不需要static，直接用局部变量标记即可
-                        // 为了简单，我们每次循环并不都需要发包，只要让客户端不收到 QUE 即可
-                        // 但为了用户体验，我们可以发一次 WAIT
-                        
-                        // 更简单的做法：客户端收到 LOGIN_OK 后，如果服务器不发 QUE，客户端就在等。
-                        // 我们发送一个显式的 WAIT 指令让客户端弹窗
+                        static int sent_wait = 0; 
                         send_safe(sock, "WAIT|等待管理员开启考试...");
                         
                         // 轮询等待，每秒检查一次
@@ -273,7 +266,7 @@ void *client_handler(void *socket_desc) {
                             if (start) break; // 考试开始了！
                             
                             sleep(1); 
-                            // 这里可以通过 send_safe 发送心跳包防止断连，或者利用 TCP KeepAlive
+                           
                         }
                         waiting = 0; // 退出外层循环
                     }
@@ -288,7 +281,7 @@ void *client_handler(void *socket_desc) {
                 }
 
                 int score = 0;
-                // 【修复】增加完成计数器
+                // 增加完成计数器
                 int completed_count = 0; 
 
                 // 准备日志
@@ -304,8 +297,8 @@ void *client_handler(void *socket_desc) {
                     
                     sprintf(q_buf, "QUE|%s|%s|%s|%s|%s", q->content, q->optionA, q->optionB, q->optionC, q->optionD);
                     send_safe(sock, q_buf);
-
-                    // 【修复】接收答案也使用 recv_packet，防止与下一条指令粘包
+                    // 同步模型: 服务器发一题-> 客户端答一题
+                    // 接收答案也使用 recv_packet，防止与下一条指令粘包
                     char ans_buf[256];
                     int r = recv_packet(sock, ans_buf, sizeof(ans_buf));
                     
@@ -314,10 +307,22 @@ void *client_handler(void *socket_desc) {
                         break; 
                     }
 
-                    if (log_fp) {
-                        fprintf(log_fp, "  {\"question\": \"%s\", \"user_answer\": \"%s\", \"correct_answer\": \"%s\"}%s\n",
-                            q->content, ans_buf, q->answer, (i == examQuestionNum - 1) ? "" : ",");
-                    }
+                    fprintf(log_fp, "  {"
+                            "\"question\": \"%s\", "
+                            "\"options\": {"
+                                "\"A\": \"%s\", "
+                                "\"B\": \"%s\", "
+                                "\"C\": \"%s\", "
+                                "\"D\": \"%s\""
+                            "}, "
+                            "\"user_answer\": \"%s\", "
+                            "\"correct_answer\": \"%s\""
+                            "}%s\n",
+                            q->content, 
+                            q->optionA, q->optionB, q->optionC, q->optionD, // 传入选项内容
+                            ans_buf, q->answer, 
+                            (i == examQuestionNum - 1) ? "" : "," // 处理 JSON 逗号
+                        );
                     
                     if(strcmp(ans_buf, q->answer) == 0) score += 10;
                     completed_count++; // 标记该题完成
@@ -329,7 +334,7 @@ void *client_handler(void *socket_desc) {
                 }
                 free(indices);
 
-                // 【修复】只有当实际完成题目数等于考试要求数时，才保存成绩
+                // 只有当实际完成题目数等于考试要求数时，才保存成绩
                 // 防止断线后被判为 0 分且无法重考
                 if (completed_count == examQuestionNum) {
                     pthread_mutex_lock(&data_lock);

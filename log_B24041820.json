@@ -1,7 +1,7 @@
 [
-  {"question": "1e5表示？", "user_answer": "BD", "correct_answer": "B"},
-  {"question": "rand()函数生成的是？", "user_answer": "BD", "correct_answer": "B"},
-  {"question": "C语言中，形参和实参占用相同的内存单元吗？", "user_answer": "C", "correct_answer": "B"},
-  {"question": "字符 'A' 对应的ASCII码值大约是？", "user_answer": "B", "correct_answer": "B"},
-  {"question": "char类型在内存中占用多少字节？", "user_answer": "A", "correct_answer": "A"}
+  {"question": "结构体为了对齐可能会？", "options": {"A": "压缩空间", "B": "填充字节(Padding)", "C": "重排成员", "D": "报错"}, "user_answer": "D", "correct_answer": "B"},
+  {"question": "C语言中，浮点常量默认是什么类型？", "options": {"A": "float", "B": "double", "C": "long double", "D": "real"}, "user_answer": "B", "correct_answer": "B"},
+  {"question": "void类型表示？", "options": {"A": "整数", "B": "浮点数", "C": "空类型", "D": "字符"}, "user_answer": "C", "correct_answer": "C"},
+  {"question": "C语言中，整型常量默认是什么类型？", "options": {"A": "short", "B": "int", "C": "long", "D": "char"}, "user_answer": "B", "correct_answer": "B"},
+  {"question": "perror函数用于？", "options": {"A": "打印错误信息", "B": "终止程序", "C": "清除错误", "D": "忽略错误"}, "user_answer": "A", "correct_answer": "A"}
 ]

@@ -1,7 +1,7 @@
 [
-  {"question": "如果a=1,b=2,则a*b=", "user_answer": "B", "correct_answer": "AB"},
-  {"question": "short类型通常占多少字节？", "user_answer": "C", "correct_answer": "B"},
-  {"question": "SEEK_END表示？", "user_answer": "B", "correct_answer": "C"},
-  {"question": "赋值运算符是？", "user_answer": "C", "correct_answer": "B"},
-  {"question": "ptrdiff_t是？", "user_answer": "B", "correct_answer": "A"}
+  {"question": "结构体为了对齐可能会？", "options": {"A": "压缩空间", "B": "填充字节(Padding)", "C": "重排成员", "D": "报错"}, "user_answer": "A", "correct_answer": "B"},
+  {"question": "递归函数必须包含？", "options": {"A": "循环", "B": "终止条件", "C": "指针", "D": "数组"}, "user_answer": "C", "correct_answer": "B"},
+  {"question": "system("pause")的作用是？", "options": {"A": "终止程序", "B": "暂停程序", "C": "清屏", "D": "重启"}, "user_answer": "B", "correct_answer": "B"},
+  {"question": "typedef int (FUNC)(int); 定义了？", "options": {"A": "一个函数", "B": "一个函数指针类型", "C": "一个整数", "D": "一个结构体"}, "user_answer": "B", "correct_answer": "B"},
+  {"question": "表达式 5 / 2 的结果是？", "options": {"A": "2.5", "B": "2", "C": "1", "D": "0"}, "user_answer": "C", "correct_answer": "B"}
 ]

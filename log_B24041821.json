@@ -1,0 +1,7 @@
+[
+  {"question": "#if 0 ... #endif 的作用是？", "options": {"A": "代码高亮", "B": "注释掉代码块", "C": "强制编译", "D": "包含代码"}, "user_answer": "D", "correct_answer": "B"},
+  {"question": "a=1,b=2,a*b=", "options": {"A": "2", "B": "2", "C": "2", "D": "2"}, "user_answer": "B", "correct_answer": "ABCD"},
+  {"question": "exit(0)表示？", "options": {"A": "异常退出", "B": "正常退出", "C": "暂停", "D": "重启"}, "user_answer": "C", "correct_answer": "B"},
+  {"question": "C语言中最大的无符号整数常量后缀是？", "options": {"A": "L", "B": "U", "C": "UL", "D": "ULL"}, "user_answer": "B", "correct_answer": "D"},
+  {"question": "1e5表示？", "options": {"A": "15", "B": "100000", "C": "50", "D": "1的5次方"}, "user_answer": "C", "correct_answer": "B"}
+]

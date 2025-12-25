@@ -1,0 +1,7 @@
+[
+  {"question": "C语言支持函数嵌套定义吗？", "options": {"A": "支持", "B": "不支持", "C": "标准库支持", "D": "特定编译器支持"}, "user_answer": "B", "correct_answer": "B"},
+  {"question": "SEEK_SET表示？", "options": {"A": "文件开头", "B": "文件当前位置", "C": "文件末尾", "D": "文件中间"}, "user_answer": "CD", "correct_answer": "A"},
+  {"question": "fflush(stdin)的作用是？", "options": {"A": "清空输入缓冲区", "B": "清空输出缓冲区", "C": "关闭输入", "D": "打开输入"}, "user_answer": "B", "correct_answer": "A"},
+  {"question": "stderr是指？", "options": {"A": "标准输入", "B": "标准输出", "C": "标准错误", "D": "标准日志"}, "user_answer": "B", "correct_answer": "C"},
+  {"question": "C语言中，浮点常量默认是什么类型？", "options": {"A": "float", "B": "double", "C": "long double", "D": "real"}, "user_answer": "D", "correct_answer": "B"}
+]
